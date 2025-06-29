@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Hostel Hustle</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">
+      <img src="images/logo.png" alt="Hostel Hustle Logo">
+    </div>
+    <div class="nav-actions">
+      <span id="welcome-user"></span>
+      <button><a href="index.html">🏠 Home</a></button>
+      <button><a href="cart.html">🛒 Cart</a></button>
+      <button><a href="orders.html">🧾 My Orders</a></button>
+      <button><a href="seller-dashboard.html">📦 Seller Tools</a></button>
+      <!--LOGIN button (only shown if not signed in)-->
+      <a href="login.html" id="login-link" style="display: none;">🔐 Login</a>
+      <!--LOGOUT button (only shown if signed in)-->
+      <button id="logout-btn"><a href="login.html">🚪 Logout</a></button>
+      <button><a href="admin-products.html" id="admin-products-link" style="display: none;"> Admin Products</a></button>
+      <label class="switch">
+        <input type="checkbox" id="dark-toggle">
+        <span class="slider"></span>
+      </label>
+      <small style="font-size: 12px;">dark-mode</small>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1>🛠️ Admin Panel</h1>
+    <section id="product-review" class="product-grid"></section>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    const reviewContainer = document.getElementById("product-review");
+
+    function loadUnapprovedProducts() {
+      const products = JSON.parse(localStorage.getItem("products")) || [];
+      const unapproved = products.filter(p => !p.approved);
+
+      reviewContainer.innerHTML = "";
+      if (unapproved.length === 0) {
+        reviewContainer.innerHTML = "<p>All products are approved.</p>";
+        return;
+      }
+
+      unapproved.forEach((item, index) => {
+        const card = document.createElement("div");
+        card.className = "product";
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}">
+          <h3>${item.name}</h3>
+          <p>₦${item.price}</p>
+          <p>Category: ${item.category}</p>
+          <p>Seller: ${item.seller}</p>
+          <button onclick="approveProduct(${index})">Approve</button>
+          <button onclick="rejectProduct(${index})">Reject</button>
+        `;
+        reviewContainer.appendChild(card);
+      });
+    }
+
+    function approveProduct(index) {
+      const products = JSON.parse(localStorage.getItem("products")) || [];
+      const unapproved = products.filter(p => !p.approved);
+      const item = unapproved[index];
+      const fullIndex = products.findIndex(p => p.name === item.name && p.seller === item.seller);
+      products[fullIndex].approved = true;
+      localStorage.setItem("products", JSON.stringify(products));
+      loadUnapprovedProducts();
+    }
+
+    function rejectProduct(index) {
+      const products = JSON.parse(localStorage.getItem("products")) || [];
+      const unapproved = products.filter(p => !p.approved);
+      const item = unapproved[index];
+      const updated = products.filter(p => !(p.name === item.name && p.seller === item.seller));
+      localStorage.setItem("products", JSON.stringify(updated));
+      loadUnapprovedProducts();
+    }
+
+    loadUnapprovedProducts();
+  </script>
+</body>
+</html>

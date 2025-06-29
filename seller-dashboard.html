@@ -1,0 +1,216 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Dashboard - Hostel Hustle</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      font-size: 16px;
+      opacity: 0;
+      transition: opacity 0.5s ease, bottom 0.5s ease;
+    }
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+      bottom: 50px;
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">
+      <img src="images/logo.png" alt="Hostel Hustle Logo">
+    </div>
+    <div class="nav-actions">
+      <span id="welcome-user"></span>
+      <button><a href="index.html">🏠 Home</a></button>
+      <button><a href="cart.html">🛒 Cart</a></button>
+      <button><a href="orders.html">🧾 My Orders</a></button>
+      <!--LOGIN button (only shown if not signed in)-->
+      <a href="login.html" id="login-link" style="display: none;">🔐 Login</a>
+      <!--LOGOUT button (only shown if signed in)-->
+      <button id="logout-btn"><a href="login.html">🚪 Logout</a></button>
+      <button><a href="admin.html" id="admin-dashboard-link" style="display: none;"> Admin</a></button>
+      <button><a href="admin-products.html" id="admin-products-link" style="display: none;"> Admin Products</a></button>
+      <label class="switch">
+        <input type="checkbox" id="dark-toggle">
+        <span class="slider"></span>
+      </label>
+      <small style="font-size: 12px;">dark-mode</small>
+    </div>
+  </header>
+  <main class="main-content">
+    <h1>📦 Seller Dashboard</h1>
+
+    <form id="upload-form" class="checkout-form" >
+      <input type="hidden" id="product-id" />
+      <label for="name">Product Name</label>
+      <input type="text" id="product-name" required>
+
+      <label for="price">Price</label>
+      <input type="number" id="product-price" required>
+
+      <label for="category">Category</label>
+      <select id="product-category" required>
+        <option value="toiletries">🧼 Toiletries</option>
+        <option value="wears">👕 Wears</option>
+        <option value="cooking materials">🍲 Cooking Materials</option>
+        <option value="hair accessories">💇 Hair Accessories</option>
+        <option value="food stuffs">🍚 Food Stuffs</option>
+      </select>
+
+      <label for="image">Image URL</label>
+      <input type="file" id="product-image" accept="image/*" onchange="previewImage()" required>
+      <img id="image-preview" src="#" alt="Image Preview" style="max-width: 150px; display: none;" />
+      <button type="submit">Upload Product</button>
+    </form>
+
+    <section>
+    <h2>Your Uploaded Products</h2>
+    <div id="seller-products" class="product-grid"></div>
+    </section>
+  </main>
+ 
+  <div id="toast" class="toast">Product saved successfully!</div>  
+  <script src="auth.js"></script>
+  <script>
+  let products = JSON.parse(localStorage.getItem("products")) || [];
+
+  document.getElementById("upload-form").addEventListener("submit", submitProduct)
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = "toast show";
+      setTimeout(() => {
+        toast.className = toast.className.replace("show", "");
+      }, 3000);
+    }
+
+    function previewImage() {
+      const file = document.getElementById("product-image").files[0];
+      const preview = document.getElementById("image-preview");
+      
+      if (!file) {
+        preview.src = "";
+        preview.style.display = "none";
+        return
+      }
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        preview.src = reader.result;
+        preview.style.display = "block";
+      };
+        reader.readAsDataURL(file);
+    }
+
+    function submitProduct(event) {
+      event.preventDefault();
+
+      const id = document.getElementById("product-id").value || Date.now();
+      const name = document.getElementById("product-name").value;
+      const price = parseFloat(document.getElementById("product-price").value);
+      const category = document.getElementById("product-category").value;
+      const imageInput = document.getElementById("product-image");
+      const seller = localStorage.getItem("currentUser");
+      const preview = document.getElementById("image-preview");
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        const base64Image = imageInput.files.length ? reader.result : preview.src;
+
+        
+        const product = {
+          id: Number(id),
+          name: name,
+          price: price,
+          category: category,
+          image: base64Image,
+          seller: seller,
+          approved: false
+        };
+        const existingIndex = products.findIndex(p => p.id == id);
+        if (existingIndex > -1) {
+          products[existingIndex] = product;
+        } else {
+          products.push(product);
+        }
+        localStorage.setItem("products", JSON.stringify(products));
+        document.getElementById("upload-form").reset();
+        document.getElementById("image-preview").style.display = "none";
+        showToast("Product saved successfully!");
+        loadSellerProducts();
+      };
+
+      if (imageInput.files.length) {
+        reader.readAsDataURL(imageInput.files[0]);
+      } else {
+        showToast("please select an image");
+      }
+    }
+    function loadSellerProducts() {
+      const allProducts = JSON.parse(localStorage.getItem("products")) || [];
+      const currentUser = localStorage.getItem("currentUser");
+      const sellerProducts = allProducts.filter(p => p.seller === currentUser);
+
+      const container = document.getElementById("seller-products");
+      container.innerHTML = "";
+
+      if (sellerProducts.length === 0) {
+        container.innerHTML = "<p>No products uploaded yet.</p>";
+        return;
+      }
+
+      sellerProducts.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `
+          <img src="${p.image}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>₦${p.price}</p>
+          <p>Status: <strong>${p.approved ? '✅ Approved' : '⏳ Pending'}</strong></p>
+          <button onclick="editProduct(${p.id})">✏️ Edit</button>
+          <button onclick="confirmDelete(${p.id})">🗑️ Delete</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function editProduct(id) {
+      const products = JSON.parse(localStorage.getItem("products")) || [];
+      const product = products.find(p => p.id === id);
+      if (product) {
+        document.getElementById("product-id").value = product.id;
+        document.getElementById("product-name").value = product.name;
+        document.getElementById("product-price").value = product.price;
+        document.getElementById("product-category").value = product.category;
+        document.getElementById("image-preview").src = product.image;
+        document.getElementById("image-preview").style.display = "block";
+      }
+    }
+
+    function confirmDelete(id) {
+      if (confirm("delete this product")) {
+        let products = JSON.parse(localStorage.getItem("products")) || [];
+        products = products.filter(p => p.id !== id);
+        localStorage.setItem("products", JSON.stringify(products));
+        showToast("Product deleted successfully!"); 
+        loadSellerProducts();
+      }
+    }
+    window.onload = loadSellerProducts;
+  </script> 
+</body>
+</html>

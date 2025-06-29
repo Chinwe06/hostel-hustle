@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout - Hostel Hustle</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">
+      <img src="images/logo.png" alt="Hostel Hustle Logo" />
+    </div>
+    <div class="nav-actions">
+      <span id="welcome-user"></span>
+      <button><a href="index.html">🏠 Home</a></button>
+      <button><a href="cart.html">🛒 Cart</a></button>
+      <button><a href="orders.html">🧾 My Orders</a></button>
+      <button><a href="seller-dashboard.html">📦 Seller Tools</a></button>
+      <button><a href="admin.html" id="admin-dashboard-link" style="display: none;"> Admin</a></button>
+      <button><a href="admin-products.html" id="admin-products-link" style="display: none;"> Admin Products</a></button>
+      <!--LOGIN button (only shown if not signed in)-->
+      <a href="login.html" id="login-link" style="display: none;">🔐 Login</a>
+      <!--LOGOUT button (only shown if signed in)-->
+      <button id="logout-btn"><a href="login.html">🚪 Logout</a></button>
+      
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1>💳 Checkout</h1>
+    <form id="checkout-form" class="checkout-form">
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" required />
+
+      <label for="address">Hostel Address</label>
+      <input type="text" id="address" required />
+
+      <label for="phone">Phone Number</label>
+      <input type="tel" id="phone" required />
+
+      <label for="payment">Payment Method</label>
+      <select id="payment" required>
+        <option value="mastercard">💳 Mastercard</option>
+        <option value="transfer">🏦 Bank Transfer</option>
+        <option value="cash">💵 Pay on Delivery</option>
+      </select>
+
+      <button type="submit">Submit Order</button>
+    </form>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    document.getElementById("checkout-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const order = {
+        user: localStorage.getItem("currentUser"),
+        fullname: document.getElementById("fullname").value,
+        address: document.getElementById("address").value,
+        phone: document.getElementById("phone").value,
+        payment: document.getElementById("payment").value,
+        cart: JSON.parse(localStorage.getItem("cart")) || [],
+        date: new Date().toLocaleString()
+      };
+
+      const orders = JSON.parse(localStorage.getItem("orders")) || [];
+      orders.push(order);
+      localStorage.setItem("orders", JSON.stringify(orders));
+      localStorage.removeItem("cart");
+
+      window.location.href = "confirmation.html";
+    });
+  </script>
+</body>
+</html>

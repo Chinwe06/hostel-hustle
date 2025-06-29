@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hostel Hustle - Home</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body >
+  <header class="navbar">
+    <div class="logo">
+      <img src="images/logo.png" alt="Hostel Hustle Logo">
+    </div>
+    <div class="nav-actions">
+      <span id="welcome-user"></span>
+      <button><a href="cart.html">🛒 Cart</a></button>
+      <button><a href="orders.html">🧾 My Orders</a></button>
+      <button><a href="seller-dashboard.html">📦 Seller Tools</a></button>
+      <!--LOGIN button (only shown if not signed in)-->
+      <a href="login.html" id="login-link" style="display: none;">🔐 Login</a>
+      <!--LOGOUT button (only shown if signed in)-->
+      <button id="logout-btn"><a href="login.html">🚪 Logout</a></button>
+      <button><a href="admin.html" id="admin-dashboard-link" style="display: none;"> Admin</a></button>
+      <button><a href="admin-products.html" id="admin-products-link" style="display: none;"> Admin Products</a></button>
+      <label class="switch">
+        <input type="checkbox" id="dark-toggle">
+        <span class="slider"></span>
+      </label>
+      <small style="font-size: 12px;">dark</small>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1>🛍️ Explore Categories</h1>
+    <div class="categories">
+      <button onclick="filterCategory('toiletries')">🧼 Toiletries</button>
+      <button onclick="filterCategory('wears')">👕 Wears</button>
+      <button onclick="filterCategory('cooking')">🍲 Cooking Materials</button>
+      <button onclick="filterCategory('hair')">💇 Hair Accessories</button>
+      <button onclick="filterCategory('food')">🍚 Food Stuffs</button>
+      <button onclick="filterCategory('all')">📦 All</button>
+    </div>
+
+    <div id="product-grid" class="product-grid"></div>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    function getApprovedProduct(){
+      const product = JSON.parse(localStorage.getItem("products")) || [];
+      return product.filter(p => p.approved);
+    }
+    const productGrid = document.getElementById("product-grid");
+    function filterCategory(category) {
+      const allProducts = JSON.parse(localStorage.getItem("products")) || [];
+      const approved = allProducts.filter(p => p.approved);
+      const filtered = category === 'all' ? approved : approved.filter(p => p.category === category);
+      renderProducts(filtered);
+    }
+
+    function renderProducts(products) {
+      productGrid.innerHTML = "";
+      if (products.length === 0) {
+        productGrid.innerHTML = "<p>No products available in this category.</p>";
+        return;
+      }
+
+      products.forEach((p, i) => {
+        const card = document.createElement("div");
+        card.className = "product";
+        card.innerHTML = `
+          <img src="${p.image}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>₦${p.price}</p>
+          <button onclick="addToCart(${i})">Add to Cart</button>
+        `;
+        productGrid.appendChild(card);
+      });
+    }
+
+    function addToCart(index) {
+      const allProducts = JSON.parse(localStorage.getItem("products")) || [];
+      const approved = allProducts.filter(p => p.approved);
+      const product = approved[index];
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.push(product);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      alert("Added to cart!");
+    }
+
+    filterCategory('all');
+  </script>
+</body>
+</html>

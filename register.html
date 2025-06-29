@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Hostel Hustle</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="auth-container">
+    <h1>📝 Register</h1>
+    <form id="register-form" class="auth-form">
+      <label for="first name">First name</label>
+      <input name="name" type="text" required>
+      <label for="last Name">Last Name</label>
+      <input name="name" type="text" required>
+      <label for="username">Username</label>
+      <input name="name" type="text" required>
+      <label for="email">Email</label>
+      <input type="email" id="email" required>
+      <label for="birthday">Birthday</label>
+      <input type="date" name="birthday">
+      <label for="gender">Gender</label>
+        <select name="gender" id="gender">
+            <option value="male">male</option> <br>
+            <option value="female">female</option><br>
+            <option value="others">others</option><br>
+        </select>
+      <label for="password">Password</label>
+      <input type="password" id="password" minlength="7" maxlength="12">
+      <small>Password must contain uppercase, lowercase, number, and symbol.</small>
+
+      <button type="submit">Register</button>
+    </form>
+    <p>Already have an account? <a href="login.html">Click here to login</a></p>
+  </main>
+  <script src="auth.js"></script>
+  <script>
+    document.getElementById("register-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{6,}$/;
+
+      if (!passwordRegex.test(password)) {
+        alert("Password must include uppercase, lowercase, number, and special character.");
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      if (users.find(u => u.email === email)) {
+        alert("User already exists.");
+        return;
+      }
+
+      users.push({ email, password });
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("Registration successful! You can now log in.");
+      window.location.href = "login.html";
+    });
+  </script>
+</body>
+</html>

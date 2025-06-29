@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart - Hostel Hustle</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">
+      <img src="images/logo.png" alt="Hostel Hustle Logo" />
+    </div>
+    <div class="nav-actions">
+      <span id="welcome-user"></span>
+      <button><a href="index.html">🏠 Home</a></button>
+      <button><a href="orders.html">🧾 My Orders</a></button>
+      <button><a href="seller-dashboard.html">📦 Seller Tools</a></button>
+      <!--LOGIN button (only shown if not signed in)-->
+      <a href="login.html" id="login-link" style="display: none;">🔐 Login</a>
+      <!--LOGOUT button (only shown if signed in)-->
+      <button id="logout-btn"><a href="login.html">🚪 Logout</a></button>
+      <button><a href="admin.html" id="admin-dashboard-link" style="display: none;"> Admin</a></button>
+      <button><a href="admin-products.html" id="admin-products-link" style="display: none;"> Admin Products</a></button>
+      <label class="switch">
+        <input type="checkbox" id="dark-toggle">
+        <span class="slider"></span>
+      </label>
+      <small style="font-size: 12px;">dark-mode</small>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1>🛒 Your Cart</h1>
+    <section id="cart-items" class="product-grid"></section>
+    <div class="cart-footer">
+      <h2>Total: ₦<span id="cart-total">0</span></h2>
+      <a href="checkout.html"><button>Proceed to Checkout</button></a>
+    </div>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    const cartContainer = document.getElementById("cart-items");
+    const totalDisplay = document.getElementById("cart-total");
+
+    function renderCart() {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cartContainer.innerHTML = "";
+      let total = 0;
+
+      if (cart.length === 0) {
+        cartContainer.innerHTML = "<p>Your cart is empty.</p>";
+        return;
+      }
+
+      cart.forEach((item, index) => {
+        total += Number(item.price);
+        const card = document.createElement("div");
+        card.className = "product";
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" />
+          <h3>${item.name}</h3>
+          <p>₦${item.price}</p>
+          <button onclick="removeFromCart(${index})">Remove</button>
+        `;
+        cartContainer.appendChild(card);
+      });
+
+      totalDisplay.textContent = total;
+    }
+
+    function removeFromCart(index) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      renderCart();
+    }
+
+    renderCart();
+  </script>
+</body>
+</html>

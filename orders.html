@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders - Hostel Hustle</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      font-size: 16px;
+      opacity: 0;
+      transition: opacity 0.5s ease, bottom 0.5s ease;
+    }
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+      bottom: 50px;
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">
+      <img src="images/logo.png" alt="Hostel Hustle Logo" />
+    </div>
+    <div class="nav-actions">
+      <span id="welcome-user"></span>
+      <button><a href="index.html">🏠 Home</a></button>
+      <button><a href="cart.html">🛒 Cart</a></button>
+      <button><a href="seller-dashboard.html">📦 Seller Tools</a></button>
+      <!--LOGIN button (only shown if not signed in)-->
+      <a href="login.html" id="login-link" style="display: none;">🔐 Login</a>
+      <!--LOGOUT button (only shown if signed in)-->
+      <button id="logout-btn"><a href="login.html">🚪 Logout</a></button>
+      <button><a href="admin.html" id="admin-dashboard-link" style="display: none;"> Admin</a></button>
+      <button><a href="admin-products.html" id="admin-products-link" style="display: none;"> Admin Products</a></button>
+      <label class="switch">
+        <input type="checkbox" id="dark-toggle">
+        <span class="slider"></span>
+      </label>
+      <small style="font-size: 12px;">dark-mode</small>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1>📦 My Orders</h1>
+    <div id="order-list"></div>
+  </main>
+
+  <!-- Toast Message -->
+  <div id="toast" class="toast">Deleted</div>
+
+  <script src="auth.js"></script>
+  <script>
+    const currentUser = localStorage.getItem("currentUser");
+    const orders = JSON.parse(localStorage.getItem("orders")) || [];
+    const myOrders = orders.filter(o => o.user === currentUser);
+    const orderList = document.getElementById("order-list");
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = "toast show";
+      setTimeout(() => {
+        toast.className = toast.className.replace("show", "");
+      }, 3000);
+    }
+
+    function downloadOrder(order) {
+      const text = JSON.stringify(order, null, 2);
+      const blob = new Blob([text], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `order-${order.date}.json`;
+      a.click();
+      showToast("Order downloaded");
+    }
+
+    function deleteOrder(orderDate) {
+      const updatedOrders = orders.filter(o => !(o.user === currentUser && o.date === orderDate));
+      localStorage.setItem("orders", JSON.stringify(updatedOrders));
+      showToast("Order deleted");
+      setTimeout(() => location.reload(), 1000);
+    }
+
+    if (myOrders.length === 0) {
+      orderList.innerHTML = "<p>You have no orders yet.</p>";
+    } else {
+      myOrders.forEach((order) => {
+        const div = document.createElement("div");
+        div.className = "order-item";
+        div.innerHTML = `
+          <h3>Order</h3>
+          <p><strong>Name:</strong> ${order.fullname}</p>
+          <p><strong>Address:</strong> ${order.address}</p>
+          <p><strong>Phone:</strong> ${order.phone}</p>
+          <p><strong>Payment:</strong> ${order.payment}</p>
+          <p><strong>Date:</strong> ${order.date}</p>
+          <ul>
+            ${order.cart.map(item => `<li>${item.name} - ₦${item.price}</li>`).join("")}
+          </ul>
+          <button onclick='downloadOrder(${JSON.stringify(order).replace(/'/g, "\\'")})'>Download</button>
+          <button onclick='if(confirm("Delete this order?")) deleteOrder("${order.date}")'>Delete</button>
+        `;
+        orderList.appendChild(div);
+      });
+    }
+
+    // Handle Auth State
+    const loginLink = document.getElementById("login-link");
+    const logoutBtn = document.getElementById("logout-btn");
+    const welcomeUser = document.getElementById("welcome-user");
+
+    if (currentUser) {
+      welcomeUser.textContent = `Welcome, ${currentUser}`;
+      logoutBtn.style.display = "inline-block";
+    } else {
+      loginLink.style.display = "inline-block";
+    }
+
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("currentUser");
+      window.location.href = "login.html";
+    });
+  </script>
+</body>
+</html>
