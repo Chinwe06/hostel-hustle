@@ -72,7 +72,7 @@
 
   function addToCart(productId) {
     const products = JSON.parse(localStorage.getItem("products")) || [];
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => p.id === product-id);
     if (!product) return;
 
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
