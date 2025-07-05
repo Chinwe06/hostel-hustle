@@ -46,49 +46,42 @@
 
   <script src="auth.js"></script>
   <script>
-    function getApprovedProduct(){
-      const product = JSON.parse(localStorage.getItem("products")) || [];
-      return product.filter(p => p.approved);
-    }
-    const productGrid = document.getElementById("product-grid");
-    function filterCategory(category) {
-      const allProducts = JSON.parse(localStorage.getItem("products")) || [];
-      const approved = allProducts.filter(p => p.approved);
-      const filtered = category === 'all' ? approved : approved.filter(p => p.category === category);
-      renderProducts(filtered);
+  function loadHomeProducts() {
+    const products = JSON.parse(localStorage.getItem("products")) || [];
+    const container = document.getElementById("home-products");
+
+    if (products.length === 0) {
+      container.innerHTML = "<p>No products available yet.</p>";
+      return;
     }
 
-    function renderProducts(products) {
-      productGrid.innerHTML = "";
-      if (products.length === 0) {
-        productGrid.innerHTML = "<p>No products available in this category.</p>";
-        return;
-      }
+    container.innerHTML = "";
 
-      products.forEach((p, i) => {
-        const card = document.createElement("div");
-        card.className = "product";
-        card.innerHTML = `
-          <img src="${p.image}" alt="${p.name}">
-          <h3>${p.name}</h3>
-          <p>₦${p.price}</p>
-          <button onclick="addToCart(${i})">Add to Cart</button>
-        `;
-        productGrid.appendChild(card);
-      });
-    }
+    products.forEach(p => {
+      const div = document.createElement("div");
+      div.className = "product";
+      div.innerHTML = `
+        <img src="${p.image}" alt="${p.name}">
+        <h3>${p.name}</h3>
+        <p>₦${p.price}</p>
+        <button onclick="addToCart(${p.id})">Add to Cart 🛒</button>
+      `;
+      container.appendChild(div);
+    });
+  }
 
-    function addToCart(index) {
-      const allProducts = JSON.parse(localStorage.getItem("products")) || [];
-      const approved = allProducts.filter(p => p.approved);
-      const product = approved[index];
-      let cart = JSON.parse(localStorage.getItem("cart")) || [];
-      cart.push(product);
-      localStorage.setItem("cart", JSON.stringify(cart));
-      alert("Added to cart!");
-    }
+  function addToCart(productId) {
+    const products = JSON.parse(localStorage.getItem("products")) || [];
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
 
-    filterCategory('all');
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    cart.push(product);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    alert("Added to cart!");
+  }
+
+  window.onload = loadHomeProducts;
   </script>
 </body>
 </html>
