@@ -73,8 +73,8 @@
       </select>
 
       <label for="image">Image URL</label>
-      <input type="file" id="product-image" accept="image/*" onchange="previewImage()" required>
-      <img id="image-preview" src="#" alt="Image Preview" style="max-width: 150px; display: none;" />
+<input type="file" id="product-image" accept="image/*" onchange="previewImage()" required>
+      <img id="image-preview" src="#" alt="Preview" style="display:none; max-width:150px;" />
       <button type="submit">Upload Product</button>
     </form>
 
@@ -112,18 +112,21 @@
     }
 
     function previewImage() {
-      const file = document.getElementById("product-image").files[0];
-      const preview = document.getElementById("image-preview");
-      const reader = new FileReader();
-      reader.onloadend = function () {
-        preview.src = reader.result;
-        preview.style.display = "block";
-      };
-      if (file) {
-        reader.readAsDataURL(file);
-      } else {
-        preview.style.display = "none";
-      }
+  const file = document.getElementById("product-image").files[0];
+  const preview = document.getElementById("image-preview");
+
+  if (!file) {
+    preview.src = "";
+    preview.style.display = "none";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onloadend = function () {
+    preview.src = reader.result;
+    preview.style.display = "block";
+  };
+  reader.readAsDataURL(file);
     }
 
     function loadSellerProducts() {
