@@ -86,131 +86,119 @@
  
   <div id="toast" class="toast">Product saved successfully!</div>  
   <script src="auth.js"></script>
-  <script>
-  let products = JSON.parse(localStorage.getItem("products")) || [];
+<script>
+  const preview = document.getElementById("image-preview");
+  const imageInput = document.getElementById("product-image");
 
-  document.getElementById("upload-form").addEventListener("submit", submitProduct)
-    function showToast(message) {
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.className = "toast show";
-      setTimeout(() => {
-        toast.className = toast.className.replace("show", "");
-      }, 3000);
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = "toast show";
+    setTimeout(() => {
+      toast.className = toast.className.replace("show", "");
+    }, 3000);
+  }
+
+  function previewImage() {
+    const file = imageInput.files[0];
+    const reader = new FileReader();
+    reader.onloadend = function () {
+      preview.src = reader.result;
+      preview.style.display = "block";
+    };
+    if (file) {
+      reader.readAsDataURL(file);
+    } else {
+      preview.src = "";
+      preview.style.display = "none";
     }
+  }
 
-    function previewImage() {
-      const file = document.getElementById("product-image").files[0];
-      const preview = document.getElementById("image-preview");
-      
-      if (!file) {
-        preview.src = "";
-        preview.style.display = "none";
-        return
-      }
-      const reader = new FileReader();
-      reader.onloadend = function () {
-        preview.src = reader.result;
-        preview.style.display = "block";
-      };
-        reader.readAsDataURL(file);
-    }
+  function submitProduct(event) {
+    event.preventDefault();
 
-    function submitProduct(event) {
-      event.preventDefault();
+    const id = document.getElementById("product-id").value || Date.now();
+    const name = document.getElementById("product-name").value;
+    const price = document.getElementById("product-price").value;
+    const category = document.getElementById("product-category").value;
+    const seller = localStorage.getItem("currentUser");
 
-      const id = document.getElementById("product-id").value || Date.now();
-      const name = document.getElementById("product-name").value;
-      const price = parseFloat(document.getElementById("product-price").value);
-      const category = document.getElementById("product-category").value;
-      const imageInput = document.getElementById("product-image");
-      const seller = localStorage.getItem("currentUser");
-      const preview = document.getElementById("image-preview");
-
-      const reader = new FileReader();
-      reader.onload = function () {
-        const base64Image = imageInput.files.length ? reader.result : preview.src;
-
-        
-        const product = {
-          id: Number(id),
-          name: name,
-          price: price,
-          category: category,
-          image: base64Image,
-          seller: seller,
-          approved: true
-        };
-        const existingIndex = products.findIndex(p => p.id == id);
-        if (existingIndex > -1) {
-          products[existingIndex] = product;
-        } else {
-          products.push(product);
-        }
-        localStorage.setItem("products", JSON.stringify(products));
-        document.getElementById("upload-form").reset();
-        document.getElementById("image-preview").style.display = "none";
-        showToast("Product saved successfully!");
-        loadSellerProducts();
-      };
-
-      if (imageInput.files.length) {
-        reader.readAsDataURL(imageInput.files[0]);
-      } else {
-        showToast("please select an image");
-      }
-    }
-    function loadSellerProducts() {
-      const allProducts = JSON.parse(localStorage.getItem("products")) || [];
-      const currentUser = localStorage.getItem("currentUser");
-      const sellerProducts = allProducts.filter(p => p.seller === currentUser);
-
-      const container = document.getElementById("seller-products");
-      container.innerHTML = "";
-
-      if (sellerProducts.length === 0) {
-        container.innerHTML = "<p>No products uploaded yet.</p>";
-        return;
-      }
-
-      sellerProducts.forEach(p => {
-        const div = document.createElement("div");
-        div.className = "product";
-        div.innerHTML = `
-          <img src="${p.image}" alt="${p.name}">
-          <h3>${p.name}</h3>
-          <p>₦${p.price}</p>
-          <p>Status: <strong>${p.approved ? '✅ Approved': Approved'}</strong></p>
-          <button onclick="editProduct(${p.id})">✏️ Edit</button>
-          <button onclick="confirmDelete(${p.id})">🗑️ Delete</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function editProduct(id) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      const base64Image = reader.result;
       const products = JSON.parse(localStorage.getItem("products")) || [];
-      const product = products.find(p => p.id === id);
-      if (product) {
-        document.getElementById("product-id").value = product.id;
-        document.getElementById("product-name").value = product.name;
-        document.getElementById("product-price").value = product.price;
-        document.getElementById("product-category").value = product.category;
-        document.getElementById("image-preview").src = product.image;
-        document.getElementById("image-preview").style.display = "block";
-      }
-    }
 
-    function confirmDelete(id) {
-      if (confirm("delete this product")) {
-        let products = JSON.parse(localStorage.getItem("products")) || [];
-        products = products.filter(p => p.id !== id);
-        localStorage.setItem("products", JSON.stringify(products));
-        showToast("Product deleted successfully!"); 
-        loadSellerProducts();
+      const product = {
+        id: Number(id),
+        name,
+        price: parseFloat(price),
+        category,
+        image: base64Image,
+        seller,
+        approved: true // ✅ Automatically approved
+      };
+
+      const existingIndex = products.findIndex(p => p.id == id);
+      if (existingIndex > -1) {
+        products[existingIndex] = product;
+      } else {
+        products.push(product);
       }
+
+      localStorage.setItem("products", JSON.stringify(products));
+      document.getElementById("upload-form").reset();
+      preview.style.display = "none";
+      showToast("✅ Product uploaded successfully!");
+      loadSellerProducts();
+    };
+
+    if (imageInput.files.length) {
+      reader.readAsDataURL(imageInput.files[0]);
     }
-    window.onload = loadSellerProducts;
-  </script> 
+  }
+
+  function loadSellerProducts() {
+    const allProducts = JSON.parse(localStorage.getItem("products")) || [];
+    const currentUser = localStorage.getItem("currentUser");
+    const sellerProducts = allProducts.filter(p => p.seller === currentUser);
+    const container = document.getElementById("seller-products");
+    container.innerHTML = sellerProducts.length === 0
+      ? "<p>No products uploaded yet.</p>"
+      : sellerProducts.map(p => `
+          <div class="product">
+            <img src="${p.image}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <p>₦${p.price}</p>
+            <button onclick="editProduct(${p.id})">✏️ Edit</button>
+            <button onclick="confirmDelete(${p.id})">🗑️ Delete</button>
+          </div>
+        `).join("");
+  }
+
+  function editProduct(id) {
+    const products = JSON.parse(localStorage.getItem("products")) || [];
+    const product = products.find(p => p.id === id);
+    if (product) {
+      document.getElementById("product-id").value = product.id;
+      document.getElementById("product-name").value = product.name;
+      document.getElementById("product-price").value = product.price;
+      document.getElementById("product-category").value = product.category;
+      preview.src = product.image;
+      preview.style.display = "block";
+    }
+  }
+
+  function confirmDelete(id) {
+    if (confirm("Delete this product?")) {
+      const products = JSON.parse(localStorage.getItem("products")) || [];
+      const updated = products.filter(p => p.id !== id);
+      localStorage.setItem("products", JSON.stringify(updated));
+      showToast("🗑️ Product deleted.");
+      loadSellerProducts();
+    }
+  }
+
+  window.onload = loadSellerProducts;
+      </script>
 </body>
 </html>
