@@ -139,7 +139,7 @@
           category: category,
           image: base64Image,
           seller: seller,
-          approved: false
+          approved: true
         };
         const existingIndex = products.findIndex(p => p.id == id);
         if (existingIndex > -1) {
@@ -180,7 +180,7 @@
           <img src="${p.image}" alt="${p.name}">
           <h3>${p.name}</h3>
           <p>₦${p.price}</p>
-          <p>Status: <strong>${p.approved ? '✅ Approved' : '⏳ Pending'}</strong></p>
+          <p>Status: <strong>${p.approved ? '✅ Approved'}</strong></p>
           <button onclick="editProduct(${p.id})">✏️ Edit</button>
           <button onclick="confirmDelete(${p.id})">🗑️ Delete</button>
         `;
