@@ -36,55 +36,5 @@
   </main>
 
   <script src="auth.js"></script>
-  <script>
-    const reviewContainer = document.getElementById("product-review");
-
-    function loadUnapprovedProducts() {
-      const products = JSON.parse(localStorage.getItem("products")) || [];
-      const unapproved = products.filter(p => !p.approved);
-
-      reviewContainer.innerHTML = "";
-      if (unapproved.length === 0) {
-        reviewContainer.innerHTML = "<p>All products are approved.</p>";
-        return;
-      }
-
-      unapproved.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "product";
-        card.innerHTML = `
-          <img src="${item.image}" alt="${item.name}">
-          <h3>${item.name}</h3>
-          <p>₦${item.price}</p>
-          <p>Category: ${item.category}</p>
-          <p>Seller: ${item.seller}</p>
-          <button onclick="approveProduct(${index})">Approve</button>
-          <button onclick="rejectProduct(${index})">Reject</button>
-        `;
-        reviewContainer.appendChild(card);
-      });
-    }
-
-    function approveProduct(index) {
-      const products = JSON.parse(localStorage.getItem("products")) || [];
-      const unapproved = products.filter(p => !p.approved);
-      const item = unapproved[index];
-      const fullIndex = products.findIndex(p => p.name === item.name && p.seller === item.seller);
-      products[fullIndex].approved = true;
-      localStorage.setItem("products", JSON.stringify(products));
-      loadUnapprovedProducts();
-    }
-
-    function rejectProduct(index) {
-      const products = JSON.parse(localStorage.getItem("products")) || [];
-      const unapproved = products.filter(p => !p.approved);
-      const item = unapproved[index];
-      const updated = products.filter(p => !(p.name === item.name && p.seller === item.seller));
-      localStorage.setItem("products", JSON.stringify(updated));
-      loadUnapprovedProducts();
-    }
-
-    loadUnapprovedProducts();
-  </script>
 </body>
 </html>
