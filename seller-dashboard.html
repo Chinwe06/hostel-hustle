@@ -86,136 +86,134 @@
  
   <div id="toast" class="toast">Product saved successfully!</div>  
   <script src="auth.js"></script>
-<script>
-  const currentUser = localStorage.getItem("currentUser");
+ <script>
+    const currentUser = localStorage.getItem("currentUser");
+    const welcomeUser = document.getElementById("welcome-user");
+    const logoutBtn = document.getElementById("logout-btn");
+    const loginLink = document.getElementById("login-link");
 
-  function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.className = "toast show";
-    setTimeout(() => {
-      toast.className = toast.className.replace("show", "");
-    }, 3000);
-  }
-
-  function previewImage() {
-    const file = document.getElementById("product-image").files[0];
-    const preview = document.getElementById("image-preview");
-    const reader = new FileReader();
-    reader.onloadend = function () {
-      preview.src = reader.result;
-      preview.style.display = "block";
-    };
-    if (file) {
-      reader.readAsDataURL(file);
+    if (!currentUser) {
+      loginLink.style.display = "inline-block";
     } else {
-      preview.src = "";
-      preview.style.display = "none";
+      welcomeUser.textContent = `Welcome, ${currentUser}`;
+      logoutBtn.style.display = "inline-block";
     }
-  }
 
-  function submitProduct(event) {
-    event.preventDefault();
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("currentUser");
+      window.location.href = "login.html";
+    });
 
-    const id = document.getElementById("product-id").value || Date.now();
-    const name = document.getElementById("product-name").value;
-    const price = document.getElementById("product-price").value;
-    const category = document.getElementById("product-category").value;
-    const imageInput = document.getElementById("product-image");
-    const preview = document.getElementById("image-preview");
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
 
-    const reader = new FileReader();
-    reader.onload = function () {
-      const base64Image = imageInput.files.length ? reader.result : preview.src;
+    function previewImage() {
+      const file = document.getElementById("product-image").files[0];
+      const preview = document.getElementById("image-preview");
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        preview.src = reader.result;
+        preview.style.display = "block";
+      };
+      if (file) {
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = "none";
+      }
+    }
+
+    function loadSellerProducts() {
+      const all = JSON.parse(localStorage.getItem("products")) || [];
+      const mine = all.filter(p => p.seller === currentUser);
+      const container = document.getElementById("seller-products");
+      container.innerHTML = "";
+      if (mine.length === 0) {
+        container.innerHTML = "<p>No products uploaded yet.</p>";
+        return;
+      }
+      mine.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `
+          <img src="${p.image}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>₦${p.price}</p>
+          <p>Category: ${p.category}</p>
+          <button onclick="editProduct(${p.id})">✏️ Edit</button>
+          <button onclick="deleteProduct(${p.id})">🗑️ Delete</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function editProduct(id) {
       const products = JSON.parse(localStorage.getItem("products")) || [];
+      const p = products.find(p => p.id === id);
+      if (p) {
+        document.getElementById("product-id").value = p.id;
+        document.getElementById("product-name").value = p.name;
+        document.getElementById("product-price").value = p.price;
+        document.getElementById("product-category").value = p.category;
+        document.getElementById("image-preview").src = p.image;
+        document.getElementById("image-preview").style.display = "block";
+      }
+    }
 
-      const product = {
-        id: Number(id),
-        name,
-        price: parseFloat(price),
-        category,
-        image: base64Image,
-        seller: currentUser
+    function deleteProduct(id) {
+      if (!confirm("Delete this product?")) return;
+      let products = JSON.parse(localStorage.getItem("products")) || [];
+      products = products.filter(p => p.id !== id);
+      localStorage.setItem("products", JSON.stringify(products));
+      showToast("Deleted");
+      loadSellerProducts();
+    }
+
+    document.getElementById("upload-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const id = document.getElementById("product-id").value || Date.now();
+      const name = document.getElementById("product-name").value;
+      const price = parseFloat(document.getElementById("product-price").value);
+      const category = document.getElementById("product-category").value;
+      const imageFile = document.getElementById("product-image").files[0];
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        const image = reader.result;
+        let products = JSON.parse(localStorage.getItem("products")) || [];
+
+        const product = {
+          id: Number(id),
+          name,
+          price,
+          category,
+          image,
+          seller: currentUser
+        };
+
+        const index = products.findIndex(p => p.id === Number(id));
+        if (index !== -1) {
+          products[index] = product;
+        } else {
+          products.push(product);
+        }
+
+        localStorage.setItem("products", JSON.stringify(products));
+        document.getElementById("upload-form").reset();
+        document.getElementById("image-preview").style.display = "none";
+        showToast("Product saved");
+        loadSellerProducts();
       };
 
-      const index = products.findIndex(p => p.id == id);
-      if (index > -1) {
-        products[index] = product; // Update existing
-      } else {
-        products.push(product);   // Add new
+      if (imageFile) {
+        reader.readAsDataURL(imageFile);
       }
-
-      localStorage.setItem("products", JSON.stringify(products));
-      document.getElementById("upload-form").reset();
-      preview.style.display = "none";
-      showToast("Product saved successfully!");
-      loadSellerProducts();
-    };
-
-    if (imageInput.files.length) {
-      reader.readAsDataURL(imageInput.files[0]);
-    } else {
-      reader.onload();
-    }
-  }
-
-  function loadSellerProducts() {
-    const allProducts = JSON.parse(localStorage.getItem("products")) || [];
-    const sellerProducts = allProducts.filter(p => p.seller === currentUser);
-
-    const container = document.getElementById("seller-products");
-    container.innerHTML = "";
-
-    if (sellerProducts.length === 0) {
-      container.innerHTML = "<p>No products uploaded yet.</p>";
-      return;
-    }
-
-    sellerProducts.forEach(p => {
-      const div = document.createElement("div");
-      div.className = "product";
-      div.innerHTML = `
-        <img src="${p.image}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <p>₦${p.price}</p>
-        <p>Category: ${p.category}</p>
-        <button onclick="editProduct(${p.id})">✏️ Edit</button>
-        <button onclick="confirmDelete(${p.id})">🗑️ Delete</button>
-      `;
-      container.appendChild(div);
     });
-  }
 
-  function editProduct(id) {
-    const products = JSON.parse(localStorage.getItem("products")) || [];
-    const product = products.find(p => p.id === id);
-    if (product) {
-      document.getElementById("product-id").value = product.id;
-      document.getElementById("product-name").value = product.name;
-      document.getElementById("product-price").value = product.price;
-      document.getElementById("product-category").value = product.category;
-      document.getElementById("image-preview").src = product.image;
-      document.getElementById("image-preview").style.display = "block";
-    }
-  }
-
-  function confirmDelete(id) {
-    if (confirm("Are you sure you want to delete this product?")) {
-      deleteProduct(id);
-      showToast("Product deleted successfully!");
-    }
-  }
-
-  function deleteProduct(id) {
-    let products = JSON.parse(localStorage.getItem("products")) || [];
-    products = products.filter(p => p.id !== id);
-    localStorage.setItem("products", JSON.stringify(products));
     loadSellerProducts();
-  }
-
-  document.getElementById("upload-form").addEventListener("submit", submitProduct);
-
-  window.onload = loadSellerProducts;
-      </script>
+  </script>
 </body>
 </html>
