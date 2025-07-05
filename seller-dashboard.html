@@ -180,7 +180,7 @@
           <img src="${p.image}" alt="${p.name}">
           <h3>${p.name}</h3>
           <p>₦${p.price}</p>
-          <p>Status: <strong>${p.approved ? '✅ Approved'}</strong></p>
+          <p>Status: <strong>${p.approved ? '✅ Approved': Approved'}</strong></p>
           <button onclick="editProduct(${p.id})">✏️ Edit</button>
           <button onclick="confirmDelete(${p.id})">🗑️ Delete</button>
         `;
